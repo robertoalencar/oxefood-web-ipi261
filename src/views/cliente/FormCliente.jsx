@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button, Container, Divider, Form, Icon } from 'semantic-ui-react';
 import MenuSistema from '../../MenuSistema';
+import { notifyError, notifySuccess } from '../../views/util/Util';
 
 
 export default function FormCliente () {
@@ -67,10 +68,10 @@ export default function FormCliente () {
 
             axios.post("http://localhost:8080/api/cliente", clienteRequest)
             .then((response) => { 
-                console.log('Cliente cadastrado com sucesso.') 
+                notifySuccess('Cliente cadastrado com sucesso.')
             })
             .catch((error) => { 
-                console.log('Erro ao incluir o cliente.') 
+                notifyError('Erro ao incluir o cliente.')
             })
         }
 
@@ -89,7 +90,7 @@ export default function FormCliente () {
                     { idCliente === undefined &&
                         <h2> <span style={{color: 'darkgray'}}> Cliente &nbsp;<Icon name='angle double right' size="small" /> </span> Cadastro</h2>
                     }
-                    { idCliente != undefined &&
+                    { idCliente !== undefined &&
                         <h2> <span style={{color: 'darkgray'}}> Cliente &nbsp;<Icon name='angle double right' size="small" /> </span> Alteração</h2>
                     }
 
