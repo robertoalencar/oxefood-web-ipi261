@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Button, Container, Divider, Header, Icon, Modal, Table } from 'semantic-ui-react';
+import { Button, Container, Divider, Form, Header, Icon, Menu, Modal, Segment, Table } from 'semantic-ui-react';
 import MenuSistema from '../../MenuSistema';
 
 export default function ListProduto () {
@@ -9,11 +9,13 @@ export default function ListProduto () {
     const [listaProdutos, setListaProdutos] = useState([]);
     const [openModal, setOpenModal] = useState(false);
     const [idRemover, setIdRemover] = useState();
+    const [listaCategoriaProduto, setListaCategoriaProduto] = useState([]);
+    const [usuario, setUsuario] = useState();
+
     const [menuFiltro, setMenuFiltro] = useState();
     const [codigo, setCodigo] = useState();
     const [titulo, setTitulo] = useState();
     const [idCategoria, setIdCategoria] = useState();
-    const [listaCategoriaProduto, setListaCategoriaProduto] = useState([]);
 
     useEffect(() => {
 
@@ -38,8 +40,23 @@ export default function ListProduto () {
             ))
 
             setListaCategoriaProduto(dropDownCategorias)
-          
+            
         })
+
+        let username = localStorage.getItem('username');
+        console.log('username: ' + username);
+
+        let formData = new FormData();
+        formData.append('username', username);
+
+        axios.post("http://localhost:8080/api/auth/user", formData)
+        .then((response) => {
+            //setUsuario(response.data)
+
+            console.log('response.data: ' + response.data.roles)
+        })
+
+        console.log('usuario: ' + usuario)
 
     }
 
@@ -79,35 +96,40 @@ export default function ListProduto () {
 
     function handleChangeCodigo(value) {
 
-        setCodigo(value);
-        filtrarProdutos();
+        filtrarProdutos(value, titulo, idCategoria);
     }
 
     function handleChangeTitulo(value) {
 
-        setTitulo(value);
-        filtrarProdutos();
+        filtrarProdutos(codigo, value, idCategoria);
     }
 
     function handleChangeCategoriaProduto(value) {
 
-        setIdCategoria(value);
-        filtrarProdutos();
+        filtrarProdutos(codigo, titulo, value);
     }
 
-    function filtrarProdutos() {
+    async function filtrarProdutos(codigoParam, tituloParam, idCategoriaParam) {
 
         let formData = new FormData();
 
-        formData.append('codigo', codigo);
-        formData.append('titulo', titulo);
-        formData.append('idCategoria', idCategoria);
+        if (codigoParam !== undefined) {
+            setCodigo(codigoParam)
+            formData.append('codigo', codigoParam);
+        }
+        if (tituloParam !== undefined) {
+            setTitulo(tituloParam)
+            formData.append('titulo', tituloParam);
+        }
+        if (idCategoriaParam !== undefined) {
+            setIdCategoria(idCategoriaParam)
+            formData.append('idCategoria', idCategoriaParam);
+        }
 
-        axios.post("http://localhost:8080/api/produto/filtrar", formData)
+        await axios.post("http://localhost:8080/api/produto/filtrar", formData)
         .then((response) => {
             setListaProdutos(response.data)
         })
-    
     }
 
     return (
@@ -126,6 +148,17 @@ export default function ListProduto () {
 
                     <div style={{marginTop: '4%'}}>
 
+                        <Menu compact>
+                            <Menu.Item
+                                name='menuFiltro'
+                                active={menuFiltro === true}
+                                onClick={() => handleMenuFiltro()}
+                            >
+                                <Icon name='filter' />
+                                Filtrar
+                            </Menu.Item>
+                        </Menu>
+
                         <Button
                             label='Novo'
                             circular
@@ -135,6 +168,45 @@ export default function ListProduto () {
                             as={Link} 
                             to='/form-produto'
                         />
+
+                        { menuFiltro ?
+                            
+                            <Segment>
+                                <Form className="form-filtros">
+                                    
+                                    <Form.Input
+                                        icon="search"
+                                        value={codigo}
+                                        onChange={e => handleChangeCodigo(e.target.value)}
+                                        label='Código do Produto'
+                                        placeholder='Filtrar por Código do Produto'
+                                        labelPosition='left'
+                                        width={4}
+                                    />
+
+                                    <Form.Group widths='equal'>                   
+                                        <Form.Input
+                                            icon="search"
+                                            value={titulo}
+                                            onChange={e => handleChangeTitulo(e.target.value)}
+                                            label='Título'
+                                            placeholder='Filtrar por título'
+                                            labelPosition='left'
+                                        />
+                                        <Form.Select
+                                            placeholder='Filtrar por Categoria'
+                                            label='Categoria'
+                                            options={listaCategoriaProduto}
+                                            value={idCategoria}
+                                            onChange={(e,{value}) => {
+                                                handleChangeCategoriaProduto(value)
+                                            }}
+                                        />
+                                        
+                                    </Form.Group>
+                                </Form>
+                            </Segment>:""
+                        }
 
                         <br/><br/>
                     

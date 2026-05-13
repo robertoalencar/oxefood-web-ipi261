@@ -24,7 +24,7 @@ export default function FormLogin () {
             axios.post("http://localhost:8080/api/auth", authenticationRequest)
             .then((response) => {
 
-                registerSuccessfulLoginForJwt(response.data.token, response.data.tokenExpiresIn)
+                registerSuccessfulLoginForJwt(response.data.token, response.data.tokenExpiresIn, response.data.username)
                 navigate("/home");
                 
             })
